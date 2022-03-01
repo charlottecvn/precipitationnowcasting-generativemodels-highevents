@@ -10,9 +10,9 @@ import h5py
 from netCDF4 import Dataset
 import config_GAN as conf
 
-from pysteps.io import archive, read_timeseries, get_method
-from pysteps.utils import conversion
-from datetime import datetime
+#from pysteps.io import archive, read_timeseries, get_method
+#from pysteps.utils import conversion
+#from datetime import datetime
 
 
 class DataGenerator(keras.utils.Sequence):

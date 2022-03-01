@@ -44,6 +44,45 @@ def get_datetime(filename):
         print('Error: could not find timestamp in file {}'.format(filename))
     return dt
 
+def get_datetime(filename):
+    '''
+    Infer datetime from filename
+    '''
+    timestamp=None
+    dt=None
+    regex_timestamp = re.compile('(\d{12})\.h5')
+    # check if regex pattern finds a timestamp
+    try:
+        timestamp = regex_timestamp.findall(filename)[0]
+        dt = datetime.strptime(str(timestamp), '%Y%m%d%H%M')
+    except:
+        print('Error: could not find timestamp in file {}'.format(filename))
+    return dt
+
+def get_diff_minutes(d1, d2):
+    '''
+    Returns the difference in minutes between first date d1 and the next date d2
+    '''
+    diff = int((d2-d1).seconds / 60)
+    return diff
+
+
+def gap_between(filename1, filename2):
+    '''
+    Checks if difference in time between two consecutive files is 5 minutes.
+    If it is not, print the two timestamps
+    Returns the number of scans missing between two files (time difference/5)
+    '''
+    d1 = get_datetime(filename1)
+    d2 = get_datetime(filename2)
+
+    diff = get_diff_minutes(d1, d2)
+
+    if diff != 5:
+        print('{} minutes gap between {} and {}'.format(diff, d1, d2))
+        return diff / 5
+    return 0
+
 def load_radar(filename,
                dir_rtcor, rtcor_fbase, dir_aart, aart_fbase,
                as_int=False):
