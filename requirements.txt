@@ -1,0 +1,13 @@
+numpy
+pandas
+tensorflow
+datetime
+h5py
+matplotlib
+netCDF4
+imageio
+tqdm
+pyproj
+geos
+basemap
+proj
