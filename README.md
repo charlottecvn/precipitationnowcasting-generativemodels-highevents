@@ -20,7 +20,7 @@ In order to execute a basic run, preprocessed data is used. When you want to pre
 A subselection of the data was used, only samples with sufficient rain were included. Each sample in the dataset was labeled as rainy or not rainy.
 To obtain these labels you can run the python script [`rainyday_labeler.py`](https://github.com/charlottecvn/precipitation-nowcasting-GANs-RU/blob/main/preprocessing/rainyday_labeler.py), with as argument the year you want to label (example: rainyday_labeler.py 2019, this would label all the samples from 2019)
 
-A generator is used to retrieve parts of the data during runtime (Datagenerator class in [batchcreator module](https://github.com/charlottecvn/precipitation-nowcasting-GANs-RU/blob/main/batchcreator_GAN.py)). The generator loads the input, target pairs by filename. To create these input and target pairs you can run the python script [`create_traindata_IDs.py`](https://github.com/charlottecvn/precipitation-nowcasting-GANs-RU/blob/main/preprocessing/create_traindata_IDs.py) and change the time interval and input and output length and the filename to your needs.
-
+A generator is used to retrieve parts of the data during runtime (Datagenerator class in [batchcreator module](https://github.com/charlottecvn/precipitation-nowcasting-GANs-RU/blob/main/batchcreator_GAN.py)). The generator loads the input, target pairs by filename. To create these input and target pairs you can run the python script [`create_traindata_IDs.py`](https://github./charlottecvn/precipitation-nowcasting-GANs-RU/blob/main/preprocessing/create_traindata_IDs.py) and change the time interval and input and output length and the filename to your needs.
+com
 ## Basic run 
 To obtain the results of an basic run, execute the `basic_run.py` file.  

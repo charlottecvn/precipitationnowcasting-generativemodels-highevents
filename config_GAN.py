@@ -2,7 +2,7 @@
 USER_FOLDER = 'charlottecvn'
 
 # When not rendering a new list with IDs, use the default option as listed below
-basic_IDs_npy = 'list_IDs201520_avg001mm.npy'
+basic_IDs_npy = 'list_IDs201520_avg001mm.npy' #"listIDs_prepped_20152020.npy"
 
 # Global variables that point to the correct directory
 path_data = '/Volumes/lacie_msc_datascience/msc_thesis/ceph_knmimo/'

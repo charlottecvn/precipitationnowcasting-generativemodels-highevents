@@ -14,7 +14,7 @@ import config_GAN
 # Set hyperparameters
 x_length = 6
 y_length = 3
-filter_no_rain = 'avg0.01mm'
+filter_no_rain = 'sum30mm'#'avg0.01mm'
 architecture = 'AENN'
 l_adv = 0.003
 l_rec = 1
@@ -37,8 +37,11 @@ model = GAN(rnn_type='GRU', x_length=x_length,
            l_adv = l_adv, l_rec = l_rec, g_cycles=3, label_smoothing=label_smoothing,
            norm_method = 'minmax', downscale256 = True, rec_with_mae= False,
            batch_norm = False)
+print("Compile model")
 model.compile(lr_g = lr_g, lr_d = lr_d)
 
+print("Create data generator")
 generator = DataGenerator(list_IDs, batch_size=8, x_seq_size=x_length,
                                        y_seq_size=y_length, load_prep=load_prep, y_is_rtcor= y_is_rtcor)
+print("Fit model")
 hist = model.fit(generator, epochs=1)

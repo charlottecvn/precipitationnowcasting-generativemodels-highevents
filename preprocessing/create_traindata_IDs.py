@@ -17,3 +17,8 @@ print(list_IDs[-1])
 print(len(list_IDs))
 
 np.save(filename, list_IDs)
+
+#[Errno 2] No such file or directory: '/Volumes/lacie_msc_datascience/msc_thesis/ceph_knmimo/preprocessed/rtcor_heavy_rain_labels/2014/201412312330.npy'
+#[Errno 2] No such file or directory: '/Volumes/lacie_msc_datascience/msc_thesis/ceph_knmimo/preprocessed/rtcor_heavy_rain_labels/2015/201501130815.npy'
+#[Errno 2] No such file or directory: '/Volumes/lacie_msc_datascience/msc_thesis/ceph_knmimo/preprocessed/rtcor_heavy_rain_labels/2015/201501161220.npy'
+#[Errno 2] No such file or directory: '/Volumes/lacie_msc_datascience/msc_thesis/ceph_knmimo/preprocessed/rtcor_heavy_rain_labels/2015/201501261420.npy'

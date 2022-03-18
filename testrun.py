@@ -7,6 +7,8 @@ import tensorflow as tf
 import logger
 import numpy as np
 
+import config_GAN
+
 print('Starting test run')
 physical_devices = tf.config.list_physical_devices('CPU') #GPU
 print("Num GPUs Available: ", len(physical_devices))
@@ -16,7 +18,7 @@ print("Num GPUs Available: ", len(physical_devices))
 run = wandb.init(project='high-precipitation-forecasting',
             config={
             'batch_size' : 32,
-            'epochs': 30,
+            'epochs': 1, #30,
             'lr_g': 0.0001,
             'lr_d': 0.0001,
             'l_adv': 0.003,
@@ -27,8 +29,8 @@ run = wandb.init(project='high-precipitation-forecasting',
             'y_length': 3,
             'rnn_type': 'GRU',
             'filter_no_rain': 'avg0.01mm',
-            'train_data': 'data/train_randomsplit.npy',
-            'val_data': 'data/val_randomsplit.npy',
+            'train_data': config_GAN.dir_basic_IDs,#'data/train_randomsplit.npy',
+            'val_data': config_GAN.dir_basic_IDs,#'data/val_randomsplit.npy',
             'architecture': 'AENN',
             'model': 'GAN',
             'norm_method': 'minmax',
