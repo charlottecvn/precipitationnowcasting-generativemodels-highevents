@@ -1,0 +1,3 @@
+[submodule "precipitation-nowcasting-GANs-RU"]
+	path = GANs-RU
+	url = https://github.com/charlottecvn/precipitation-nowcasting-GANs-RU.git
