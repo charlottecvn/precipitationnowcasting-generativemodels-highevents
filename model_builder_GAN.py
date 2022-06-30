@@ -12,6 +12,7 @@ from tensorflow.keras import backend
 from tensorflow.keras.constraints import Constraint
 from RepeatVector4D import RepeatVector4D
 
+
 # implementation of wasserstein loss
 def wasserstein_loss(y_true, y_pred):
     return backend.mean(y_true * y_pred)
@@ -363,7 +364,7 @@ class GAN(tf.keras.Model):
     def __init__(self, inp_dim = (768,700,1), out_dim = (384, 350, 1), rnn_type='GRU', x_length=6, 
                  y_length=1, relu_alpha=0.2, architecture='Tian', l_adv = 1, l_rec = 0.01, g_cycles=1, 
                  label_smoothing = 0, norm_method = None, wgan = False, downscale256 = False, rec_with_mae=True,
-                 batch_norm = False, drop_out = False, r_to_dbz = False):
+                 batch_norm = False, drop_out = False, r_to_dbz = False, balanced_loss=False):
         '''
         inp_dim: dimensions of input image(s), default 768x700
         out_dim: dimensions of the output image(s), default 384x350
@@ -387,6 +388,7 @@ class GAN(tf.keras.Model):
         batch_norm: if true batch normalization is applied after each convolution(/rnn) block
         drop_out: if true adds dropout layer after each conv block in the Discriminator (dropout rate of 0.2)
         r_to_dbz: If true the data values are in dbz not in r (mm/h)
+        balanced_loss: If true, balanced loss will be applied
         '''
         super(GAN, self).__init__()      
 
@@ -414,6 +416,7 @@ class GAN(tf.keras.Model):
         self.wgan = wgan
         self.rec_with_mae = rec_with_mae
         self.downscale256 = downscale256
+        self.balanced_loss = balanced_loss
         
     def compile(self, lr_g=0.0001, lr_d = 0.0001):
         super(GAN, self).compile()
@@ -441,13 +444,58 @@ class GAN(tf.keras.Model):
             self.opt = RMSprop(lr=0.00005)
             self.loss_fn = wasserstein_loss
             
-    def loss_rec(self, target, pred, MAE = True):
+    def rain_intensity(img):
+        '''
+        Computes the rain intensity of an image, using to the dBZ and dBR
+        The function leads to a numpy array with the intensities
+        '''
+        b = 1.56 #20
+        a = 58.53 #20
+        dBZ = img * 70.0 - 10.0
+        dBR = (dBZ - 10.0 * np.log10(a)) / b
+        return np.power(10, dBR / 10.0)
+        
+    def tf_log10(x):
+        numerator = tf.math.log(x)
+        denominator = tf.math.log(tf.constant(10, dtype=numerator.dtype))
+        return numerator / denominator
+            
+    def loss_rec(self, target, pred, MAE = True, balanced = False):
         '''
         Reconstruction loss: sum of MSE and MAE.
         mae: If false the reconstruction loss is equal to the MSE, this was found to perform better
         '''
         g_loss_mse = self.loss_mse(target, pred)
-        if MAE:
+        def tf_log10(x):
+            numerator = tf.math.log(x)
+            denominator = tf.math.log(tf.constant(10, dtype=numerator.dtype))
+            return numerator / denominator
+        
+        if balanced:
+            img = pred
+            # Z-R relationship constants
+            tf_a = tf.constant(58.53)
+            tf_b = tf.constant(1.56*10)
+            # convert
+            tf_dBZ_0 = tf.math.multiply(img, 70)
+            tf_dBZ = tf_dBZ_0 - 10
+            tf_dBR_0 = tf.math.multiply(tf.constant(10.), tf_log10(tf_a))
+            tf_dBR_1 = tf_dBZ - tf_dBR_0
+            tf_dBR = tf.divide(tf_dBR_1, tf_b)
+            # weights for the loss
+            weights_tf = tf.math.square(tf.pow(10., tf_dBR))
+            weights_tf = tf.clip_by_value(weights_tf, 0, 30)
+            norm_tf_w = (weights_tf - 30)/(30 - 0)
+            norm_tf_w = tf.math.abs(norm_tf_w)
+            # compute balanced loss
+            tf_diff_mse = tf.math.squared_difference(target, pred, name=None)
+            tf_diff_mae = tf.math.abs(target-pred)
+            tf_mse_input = tf.math.multiply(norm_tf_w, tf_diff_mse)
+            tf_mae_input = tf.math.multiply(norm_tf_w, tf_diff_mae)
+            tf_bmse = tf.reduce_mean(tf_mse_input)
+            tf_bmae = tf.reduce_mean(tf_mae_input)
+            return tf_bmse+tf_bmae
+        elif MAE:
             g_loss_mae = self.loss_mae(target, pred)       
         else:
             g_loss_mae = 0
@@ -550,7 +598,7 @@ class GAN(tf.keras.Model):
                     else:
                         adv_loss_seq = adv_loss_frame
                     g_loss_adv = adv_loss_frame + adv_loss_seq
-                    g_loss_rec = self.loss_rec(ys, generated_images, self.rec_with_mae)
+                    g_loss_rec = self.loss_rec(ys, generated_images, self.rec_with_mae, self.balanced_loss)
                     g_loss =  self.l_adv * g_loss_adv  + self.l_rec * g_loss_rec           
                 grads = tape.gradient(g_loss, self.generator.trainable_weights)
                 self.g_optimizer.apply_gradients(zip(grads, self.generator.trainable_weights))
@@ -563,7 +611,7 @@ class GAN(tf.keras.Model):
             else:
                 adv_loss_seq = 0
             g_loss_adv = adv_loss_frame + adv_loss_seq
-            g_loss_rec = self.loss_rec(ys, generated_images, self.rec_with_mae)
+            g_loss_rec = self.loss_rec(ys, generated_images, self.rec_with_mae, self.balanced_loss)
             g_loss =  self.l_adv * g_loss_adv  + self.l_rec * g_loss_rec 
         return adv_loss_frame, adv_loss_seq, g_loss_rec
     

@@ -10,15 +10,19 @@ import numpy as np
 import config_GAN
 
 print('Starting test run')
-physical_devices = tf.config.list_physical_devices('CPU') #GPU
+physical_devices = tf.config.list_physical_devices('GPU') #GPU
 print("Num GPUs Available: ", len(physical_devices))
-#tf.config.experimental.set_memory_growth(physical_devices[0], False) #true
+
+balanced_loss = False
+print(f"Balanced loss is applied = {balanced_loss}")
+
+print(config_GAN.dir_basic_IDs[:100])
 
 # Setup wandb run
 run = wandb.init(project='high-precipitation-forecasting',
             config={
-            'batch_size' : 32,
-            'epochs': 1, #30,
+            'batch_size' : 16,
+            'epochs': 1, #100
             'lr_g': 0.0001,
             'lr_d': 0.0001,
             'l_adv': 0.003,
@@ -26,11 +30,11 @@ run = wandb.init(project='high-precipitation-forecasting',
             'g_cycles': 3,
             'label_smoothing': 0.2,
             'x_length': 6,
-            'y_length': 3,
+            'y_length': 1,
             'rnn_type': 'GRU',
-            'filter_no_rain': 'avg0.01mm',
-            'train_data': config_GAN.dir_basic_IDs,#'data/train_randomsplit.npy',
-            'val_data': config_GAN.dir_basic_IDs,#'data/val_randomsplit.npy',
+            'filter_no_rain': 'avg0.01mm', #sum30mm
+            'train_data': config_GAN.dir_basic_IDs[:100],
+            'val_data': config_GAN.dir_basic_IDs[:100],
             'architecture': 'AENN',
             'model': 'GAN',
             'norm_method': 'minmax',
@@ -40,6 +44,7 @@ run = wandb.init(project='high-precipitation-forecasting',
             'server':  'RU',
             'rec_with_mae': False,
             'y_is_rtcor': True,
+            'balanced_loss': balanced_loss,
         })
 config = wandb.config
 
@@ -74,7 +79,7 @@ if config.model == 'GAN':
     model = GAN(rnn_type = config.rnn_type, x_length = config.x_length, y_length = config.y_length,
              architecture = config.architecture, g_cycles=config.g_cycles, label_smoothing = config.label_smoothing,
                 l_adv = config.l_adv, l_rec = config.l_rec, norm_method = config.norm_method, downscale256 = config.downscale256,
-               rec_with_mae = config.rec_with_mae)
+               rec_with_mae = config.rec_with_mae, balanced_loss = balanced_loss)
     model.compile(lr_g = config.lr_g, lr_d = config.lr_d)
 
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_rec_loss', patience=10, mode='min')
