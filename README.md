@@ -1,4 +1,4 @@
-# Precipitation_Nowcasting_MScThesis
+# Precipitation nowcasting for high intensity events
 Code related to my MSc Thesis at Radboud University for the programme Computing Science. 
 
 Thesis is building and improving upon previous work in precipitation nowcasting:
