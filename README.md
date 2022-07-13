@@ -1,4 +1,4 @@
-***! Repository is in maintainance, final code will soon be uploaded !***
+***! Repository is in maintenance, final code will soon be uploaded !***
 
 # Precipitation nowcasting for high intensity events
 
