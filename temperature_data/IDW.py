@@ -17,7 +17,7 @@ point_file = pd.read_csv("KNMI_temperature_data")
 output_idw_temp = []
 
 for i in range(700000):
-    point_file_i = point_file[i]
+    point_file_i = point_file[i*30:(i+1)*30]
 
     idw_output = idw.idw_interpolation(
         input_point_file=point_file_i,
