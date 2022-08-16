@@ -27,3 +27,6 @@ dir_labels = path_data + dir_prep + 'rtcor_rain_labels/'
 dir_labels_heavy = path_data + dir_prep + 'rtcor_heavy_rain_labels/'
 
 prefix_rtcor = 'RAD_NL25_RAC_5M_'
+
+temp_dir = ''
+SPROG_dir = ''

@@ -82,16 +82,16 @@ config = wandb.config
 model_path = 'saved_models/model_{}'.format(wandb.run.name.replace('-','_'))
 
 print("Create data generator")
+print(f"Temperature data is applied as extension = {temp_data}")
+print(f"S-PROG data is applied as extension = {SPROG_data}")
 generator = DataGenerator(list_IDs, batch_size=config.batch_size,
                           x_seq_size=config.x_length, y_seq_size=config.y_length,
                           norm_method = config.norm_method, load_prep=config.load_prep,
-                          downscale256 = config.downscale256, convert_to_dbz = config.convert_to_dbz, y_is_rtcor = config.y_is_rtcor)
+                          downscale256 = config.downscale256, convert_to_dbz = config.convert_to_dbz, y_is_rtcor = config.y_is_rtcor, temp_data = False, SPROG_data = False)
     
 print("Compile model")
 print(f"Balanced loss is applied = {balanced_loss}")
 print(f"RMSE loss is applied = {rmse_loss}")
-print(f"Temperature data is applied as extension = {temp_data}")
-print(f"S-PROG data is applied as extension = {SPROG_data}")
 
 model = DGMR(rnn_type = config.rnn_type, x_length = config.x_length, y_length = config.y_length,
              architecture = config.architecture, g_cycles=config.g_cycles, label_smoothing = config.label_smoothing,
