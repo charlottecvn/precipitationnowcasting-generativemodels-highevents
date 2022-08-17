@@ -68,7 +68,7 @@ def crop_center(img,cropx=350,cropy=384):
 
 # Based upon the paper by Tian. Used convLSTM instead of ConvGRU for now as the latter is not available in keras. 
 # This can later still be implemented.
-def convRNN_block(x, filters, kernel_size, strides, rnn_type='GRU', padding='same', return_sequences=True, 
+def GRBlock(x, filters, kernel_size, strides, rnn_type='GRU', padding='same', return_sequences=True,
                   name=None, relu_alpha=0.2, wgan = False, batch_norm = False, return_state = False, initial_state=None):
     const = None
     if wgan:
@@ -92,7 +92,7 @@ def convRNN_block(x, filters, kernel_size, strides, rnn_type='GRU', padding='sam
     x = tf.keras.layers.LeakyReLU(relu_alpha)(x)
     return x, state
 
-def conv_block(x, filters, kernel_size, strides, padding='same', name=None, relu_alpha=0.2, 
+def CBlock(x, filters, kernel_size, strides, padding='same', name=None, relu_alpha=0.2,
                transposed = False, output_layer=False, wgan = False,  batch_norm = False, drop_out = False):
     layer =  tf.keras.layers.Conv2D
     if transposed:
@@ -126,10 +126,10 @@ def encoder(x, rnn_type, relu_alpha):
   x = tf.keras.layers.LeakyReLU(relu_alpha)(x)   
 
   # RNN block 1
-  x = convRNN_block(x, rnn_type=rnn_type, filters=64, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type=rnn_type, filters=64, kernel_size=(3, 3),
                                           strides=(1,1), name='Conv{}1a'.format(rnn_type), relu_alpha=relu_alpha)
   
-  x = convRNN_block(x, rnn_type=rnn_type, filters=64, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type=rnn_type, filters=64, kernel_size=(3, 3),
                                           strides=(1,1), name='Conv{}1b'.format(rnn_type), relu_alpha=relu_alpha)
     
   # Downsample 2
@@ -137,10 +137,10 @@ def encoder(x, rnn_type, relu_alpha):
   x = tf.keras.layers.LeakyReLU(relu_alpha)(x)
 
   # RNN block 2
-  x = convRNN_block(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3),
                                           strides=(1,1), name='Conv{}2a'.format(rnn_type),relu_alpha=relu_alpha)
 
-  x = convRNN_block(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3),
                                           strides=(1,1), name='Conv{}2b'.format(rnn_type),relu_alpha=relu_alpha)
     
   # Downsample 3
@@ -148,17 +148,17 @@ def encoder(x, rnn_type, relu_alpha):
   x = tf.keras.layers.LeakyReLU(relu_alpha)(x)
 
   # RNN block 2
-  x = convRNN_block(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3),
                                           strides=(1,1), name='Conv{}3a'.format(rnn_type),relu_alpha=relu_alpha)
-  x = convRNN_block(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type=rnn_type, filters=192, kernel_size=(3, 3),
                                           strides=(1,1), name='Conv{}3b'.format(rnn_type),relu_alpha=relu_alpha)
   return x
 
 def decoder(x, rnn_type, relu_alpha):
   # Decoder block 1
-  x = convRNN_block(x, rnn_type= rnn_type, filters=192, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type= rnn_type, filters=192, kernel_size=(3, 3),
                                               strides=(1,1), name='Conv{}_decoder_1a'.format(rnn_type),relu_alpha=relu_alpha)
-  x = convRNN_block(x, rnn_type= rnn_type, filters=192, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type= rnn_type, filters=192, kernel_size=(3, 3),
                                               strides=(1,1), name='Conv{}_decoder_1b'.format(rnn_type),relu_alpha=relu_alpha)
 
   # Upsample 
@@ -168,10 +168,10 @@ def decoder(x, rnn_type, relu_alpha):
   x = tf.keras.layers.LeakyReLU(relu_alpha)(x)
 
   # Decoder block2
-  x = convRNN_block(x, rnn_type= rnn_type, filters=192, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type= rnn_type, filters=192, kernel_size=(3, 3),
                                               strides=(1,1), name='Conv{}_decoder_2a'.format(rnn_type),relu_alpha=relu_alpha)
 
-  x = convRNN_block(x, rnn_type= rnn_type, filters=192, kernel_size=(5, 5), 
+  x = GRBlock(x, rnn_type= rnn_type, filters=192, kernel_size=(5, 5),
                                               strides=(1,1), name='Conv{}_decoder_2b'.format(rnn_type),relu_alpha=relu_alpha)
 
   # Upsample 
@@ -180,10 +180,10 @@ def decoder(x, rnn_type, relu_alpha):
   x = tf.keras.layers.LeakyReLU(relu_alpha)(x)
 
   # Decoder block3
-  x = convRNN_block(x, rnn_type= rnn_type, filters=64, kernel_size=(3, 3), 
+  x = GRBlock(x, rnn_type= rnn_type, filters=64, kernel_size=(3, 3),
                                               strides=(1,1), name='Conv{}_decoder_3a'.format(rnn_type),relu_alpha=relu_alpha)
 
-  x = convRNN_block(x, rnn_type= rnn_type, filters=64, kernel_size=(5, 5), 
+  x = GRBlock(x, rnn_type= rnn_type, filters=64, kernel_size=(5, 5),
                                               strides=(1,1), return_sequences = False, 
                     name='Conv{}_decoder_3b'.format(rnn_type), relu_alpha=relu_alpha)
 
@@ -232,44 +232,44 @@ def generator_AENN(x, rnn_type='GRU', relu_alpha=0.2, x_length=6, y_length=1, no
         x = tf.keras.layers.ZeroPadding3D(padding=(0,0,34))(x)
         
     # Encoder:    
-    x = conv_block(x, filters = num_filters, kernel_size=5, strides = 2, 
+    x = CBlock(x, filters = num_filters, kernel_size=5, strides = 2,
                       relu_alpha = relu_alpha, batch_norm = batch_norm)
     # If input is not downscaled an extra convolution is needed 
     # to get to same dimensions as AENN network
     if not downscale256:
-        x = conv_block(x, filters = num_filters, kernel_size=5, strides = 3, 
+        x = CBlock(x, filters = num_filters, kernel_size=5, strides = 3,
                           relu_alpha = relu_alpha, batch_norm = batch_norm)
-    x = conv_block(x, filters = num_filters * 2, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = num_filters * 2, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, batch_norm = batch_norm) 
-    x = conv_block(x, filters = num_filters * 4, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = num_filters * 4, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, batch_norm = batch_norm) 
 
     # RNN part:
     if y_length > 1:
-        x, state = convRNN_block(x, filters = num_filters * 4, kernel_size=3, strides = 1, 
+        x, state = GRBlock(x, filters = num_filters * 4, kernel_size=3, strides = 1,
                           relu_alpha = relu_alpha,  rnn_type=rnn_type, return_sequences = False,
                           return_state = True, batch_norm = batch_norm) 
         x = RepeatVector4D(y_length)(x)
-        x, _ = convRNN_block(x, filters = num_filters * 4, kernel_size=3, strides = 1, 
+        x, _ = GRBlock(x, filters = num_filters * 4, kernel_size=3, strides = 1,
                           relu_alpha = relu_alpha,  rnn_type=rnn_type, return_sequences= True,
                          initial_state = state, batch_norm = batch_norm) 
     else:
-        x, _ = convRNN_block(x, filters = num_filters * 4, kernel_size=3, strides = 1, 
+        x, _ = GRBlock(x, filters = num_filters * 4, kernel_size=3, strides = 1,
                       relu_alpha = relu_alpha,  rnn_type=rnn_type, batch_norm = batch_norm) 
-        x, _ = convRNN_block(x, filters = num_filters * 4, kernel_size=3, strides = 1, 
+        x, _ = GRBlock(x, filters = num_filters * 4, kernel_size=3, strides = 1,
                       relu_alpha = relu_alpha,  rnn_type=rnn_type, return_sequences = False, batch_norm = batch_norm) 
        
         x = tf.keras.layers.Reshape(target_shape=(y_length,32,32,num_filters * 4))(x)
     # Decoder:
-    x = conv_block(x, filters = num_filters * 2, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = num_filters * 2, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, transposed = True, batch_norm = batch_norm)
     
-    x = conv_block(x, filters = num_filters, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = num_filters, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, transposed = True, batch_norm = batch_norm)
     strides_last = 3
     if downscale256:
         strides_last = 2
-    x = conv_block(x, filters = 1, kernel_size=3, strides = strides_last, 
+    x = CBlock(x, filters = 1, kernel_size=3, strides = strides_last,
                       output_layer=True, transposed = True, batch_norm = batch_norm)
     
     if norm_method and norm_method == 'minmax_tanh':
@@ -290,16 +290,17 @@ def discriminator_AENN(x, relu_alpha,  wgan = False, downscale256 = False, batch
         x = tf.keras.layers.ZeroPadding3D(padding=(0,0,17))(x)  
         strides_first = 3
         
-    x = conv_block(x, filters = 32, kernel_size=5, strides = strides_first, 
+    x = CBlock(x, filters = 32, kernel_size=5, strides = strides_first,
                       relu_alpha = relu_alpha, wgan = wgan, batch_norm = batch_norm, drop_out = drop_out)   
-    x = conv_block(x, filters = 64, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = 64, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, wgan = wgan, batch_norm = batch_norm, drop_out = drop_out)        
-    x = conv_block(x, filters = 128, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = 128, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, wgan = wgan, batch_norm = batch_norm, drop_out = drop_out)
-    x = conv_block(x, filters = 256, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = 256, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, wgan = wgan, batch_norm = batch_norm, drop_out = drop_out) 
-    x = conv_block(x, filters = 512, kernel_size=3, strides = 2, 
+    x = CBlock(x, filters = 512, kernel_size=3, strides = 2,
                       relu_alpha = relu_alpha, wgan = wgan, batch_norm = batch_norm, drop_out = drop_out)
+    # APBlock
     x = tf.keras.layers.AveragePooling3D(pool_size=(1,8,8))(x)
     x = tf.keras.layers.Flatten()(x)
     
