@@ -7,7 +7,7 @@ Work is building and improving upon previous work in precipitation nowcasting:
 - ["Precipitation Nowcasting using Generative Adversarial Networks"](https://github.com/KoertS/precipitation-nowcasting-using-GANs) by K. Schreurs et al.
 
 ## Data 
-Real-time precipitation radar data is used from 2008 till 2020. The data past 2018 is publicly available at the [KNMI data platform](https://api.dataplatform.knmi.nl/open-data/v1/datasets/nl_rdr_data_rtcor_5m_tar/versions/1.0/files). This dataset was used to train and validate the model
+Real-time precipitation radar data is used from 2006 and 2008 till 2021. The data past 2018 is publicly available at the [KNMI data platform](https://api.dataplatform.knmi.nl/open-data/v1/datasets/nl_rdr_data_rtcor_5m_tar/versions/1.0/files). This dataset was used to train and validate the model
 
 In order to run the code on your machine, you need to specify the following directories from the radboud server (`ceph/knmimo`):
 - `./preprocessed/rtcor_prep`
