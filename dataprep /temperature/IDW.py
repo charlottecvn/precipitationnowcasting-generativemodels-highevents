@@ -2,6 +2,7 @@ from pyidw import idw
 from sklearn.metrics import mean_squared_error
 import rasterio
 from matplotlib import pyplot as plt
+import config
 
 '''
 Temperature dtaa should have format
@@ -11,12 +12,12 @@ Temperature dtaa should have format
         temperature
 '''
 
-n_temp_files = 700000
+n_temp_files = config.n_temp_files
 point_file = pd.read_csv("KNMI_temperature_data")
 
 output_idw_temp = []
 
-for i in range(700000):
+for i in range(n_temp_files):
     point_file_i = point_file[i*30:(i+1)*30]
 
     idw_output = idw.idw_interpolation(
@@ -24,7 +25,7 @@ for i in range(700000):
         extent_shapefile="example.shp",
         column_name="temperature",
         power=2,
-        search_radious=20,
+        search_radious=5,
         output_resolution=765,
     )
     
