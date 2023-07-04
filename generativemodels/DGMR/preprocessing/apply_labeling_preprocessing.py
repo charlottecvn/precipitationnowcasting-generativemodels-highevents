@@ -33,4 +33,4 @@ print(len(np.setdiff1d(np.array(filenames_rtcor), np.array(files_prep))))
 #print(len(np.setdiff1d(np.array(files_prep), np.array(filenames_rtcor))))
 print((np.setdiff1d(np.array(filenames_rtcor), np.array(files_prep))))
 
-np.save('../data/listIDs_prepped_20152020.npy', files_prep)
+np.save('../data/listIDs_prepped_20062021.npy', files_prep)

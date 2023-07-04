@@ -20,7 +20,7 @@ class DataGenerator(tf.keras.utils.Sequence):
                  y_seq_size=3, shuffle=True, load_prep=False,
                 norm_method=None, crop_y=True, pad_x=True,
                 downscale256 = False, convert_to_dbz = False, y_is_rtcor = False,
-                temp_data = False, SPROG_data = False):
+                temp_data = False):
         '''
         list_IDs: pair of input and target filenames
         batch_size: size of batch to generate
@@ -38,7 +38,6 @@ class DataGenerator(tf.keras.utils.Sequence):
         convert_to_dbz: If true the rain values (mm/h) will be transformed into dbz
         y_is_rtcor: If true the target is real time radar instead of Aart's corrected radarset
         temp_data: If true, temperature data will be used as additional feature
-        SPROG_data: If true, SPROG forecasts will be used as additional feature
         '''
         img_dim = (765, 700, 1)
         
@@ -59,7 +58,6 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.out_shape = (y_seq_size, *img_dim)
         
         self.temp_data = temp_data
-        self.SPROG_data = SPROG_data
         
         self.batch_size = batch_size
         self.list_IDs = list_IDs
@@ -114,21 +112,6 @@ class DataGenerator(tf.keras.utils.Sequence):
                 sequence = torch.cat((sequence,img),dim=0)
             X = sequence
             
-        if self.SPROG_data:
-            temp_files = [os.path.join(conf.SPROG_dir,os.path.split(k)[-1]+'.npz') for k in list_IDs_temp]
-            rain_data = (X,y)
-            sequence = torch.unsqueeze(torch.tensor(rain_data, dtype=torch.float32),dim=0)
-            #loads rainfall and SPROG
-            for file in imgs_files[1:list_IDs_temp]:
-                rain_file = np.load(file)
-                rain_data = list(rain_file.values())[0]
-                img = torch.unsqueeze(torch.tensor(rain_data,dtype=torch.float32),dim=0)
-                sequence = torch.cat((sequence,img),dim=0)
-            for file in SPROG_files[:list_IDs_temp]:
-                img = torch.unsqueeze(torch.tensor(np.load(file)['data'],dtype=torch.float32),dim=0)
-                sequence = torch.cat((sequence,img),dim=0)
-            X = sequence
-
         return X, y
 
     def on_epoch_end(self):

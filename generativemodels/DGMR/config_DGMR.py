@@ -1,12 +1,12 @@
 # Variables to set for the specific user
-USER_FOLDER = '/home/ccambiervannoote'
+USER_FOLDER = "" #TODO: define path
 project_FOLDER = 'precipitationnowcasting-generativemodels-highevents/DGMR'
 
 # When not rendering a new list with IDs, use the default option as listed below
 basic_IDs_npy = 'list_IDs200621_avg001mm.npy'
 
 # Global variables that point to the correct directory
-path_data = '/ceph/knmimo/thesis_charlotte/'
+path_data = "" #TODO: define path 
 
 path_code = f'{USER_FOLDER}/{project_FOLDER}/'
 
@@ -14,9 +14,9 @@ path_project = '//'
 
 dir_basic_IDs = path_code + f'/data/{basic_IDs_npy}'
 
-dir_train_IDs = path_code + f'/data/train_randomsplit.npy'
-dir_val_IDs = path_code + f'/data/val_randomsplit.npy'
-dir_test_IDs = path_code + f'/data/test_randomsplit.npy'
+dir_train_IDs = path_code + f'/data/train_split.npy'
+dir_val_IDs = path_code + f'/data/val_split.npy'
+dir_test_IDs = path_code + f'/data/test_split.npy'
 
 dir_rtcor = path_data + 'dataset_rtcor/'
 

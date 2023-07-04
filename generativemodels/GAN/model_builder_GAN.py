@@ -363,10 +363,10 @@ def build_discriminator(relu_alpha, y_length, architecture = 'Tian', wgan = Fals
 
 class GAN(tf.keras.Model):
     def __init__(self, inp_dim = (768,700,1), out_dim = (384, 350, 1), rnn_type='GRU', x_length=6, 
-                 y_length=1, relu_alpha=0.2, architecture='Tian', l_adv = 1, l_rec = 0.01, g_cycles=1, 
+                 y_length=1, relu_alpha=0.2, architecture='Tian', l_adv = 1, l_rec = 22, g_cycles=1, 
                  label_smoothing = 0, norm_method = None, wgan = False, downscale256 = False, rec_with_mae=True,
-                 batch_norm = False, drop_out = False, r_to_dbz = False, balanced_loss=False,
-                 hinge_loss = False, temp_data = False, SPROG_data = False):
+                 batch_norm = False, drop_out = False, r_to_dbz = False, balanced_loss=False, extended_balanced=False,
+                 hinge_loss = False, temp_data = False):
         '''
         inp_dim: dimensions of input image(s), default 768x700
         out_dim: dimensions of the output image(s), default 384x350
@@ -391,9 +391,9 @@ class GAN(tf.keras.Model):
         drop_out: if true adds dropout layer after each conv block in the Discriminator (dropout rate of 0.2)
         r_to_dbz: If true the data values are in dbz not in r (mm/h)
         balanced_loss: If true, balanced loss will be applied (generator)
+        extended_balanced: If true, balanced loss will be applied (generator)
         hinge_loss: If true, Hinge loss will be applied (generator)
         temp_data: If true, temperature data will be used as additional feature
-        SPROG_data: If true, SPROG forecasts will be used as additional feature
         '''
         super(GAN, self).__init__()      
 
@@ -424,7 +424,7 @@ class GAN(tf.keras.Model):
         self.balanced_loss = balanced_loss
         self.hinge_loss = hinge_loss
         self.temp_data = temp_data
-        self.SPROG_data = SPROG_data
+        self.extended_balanced=extended_balanced
         
     def compile(self, lr_g=0.0001, lr_d = 0.0001):
         super(GAN, self).compile()
@@ -468,7 +468,7 @@ class GAN(tf.keras.Model):
         denominator = tf.math.log(tf.constant(10, dtype=numerator.dtype))
         return numerator / denominator
             
-    def loss_rec(self, target, pred, MAE = True, balanced = False, hinge = False):
+    def loss_rec(self, target, pred, MAE = True, balanced = False, hinge = False, extended_balanced=False):
         '''
         Reconstruction loss: sum of MSE and MAE.
         mae: If false the reconstruction loss is equal to the MSE, this was found to perform better
@@ -499,6 +499,27 @@ class GAN(tf.keras.Model):
             norm_tf_w = tf.math.abs(norm_tf_w)
             # compute balanced loss
             tf_diff_mse = tf.math.squared_difference(target, pred, name=None)
+            tf_mse_input = tf.math.multiply(norm_tf_w, tf_diff_mse)
+            tf_bmse = tf.reduce_mean(tf_mse_input)
+            return tf_bmse
+        elif extended_balanced:
+            img = pred
+            # Z-R relationship constants
+            tf_a = tf.constant(58.53)
+            tf_b = tf.constant(1.56*10)
+            # convert
+            tf_dBZ_0 = tf.math.multiply(img, 70)
+            tf_dBZ = tf_dBZ_0 - 10
+            tf_dBR_0 = tf.math.multiply(tf.constant(10.), tf_log10(tf_a))
+            tf_dBR_1 = tf_dBZ - tf_dBR_0
+            tf_dBR = tf.divide(tf_dBR_1, tf_b)
+            # weights for the loss
+            weights_tf = tf.math.square(tf.pow(10., tf_dBR))
+            weights_tf = tf.clip_by_value(weights_tf, 0, 30)
+            norm_tf_w = (weights_tf - 30)/(30 - 0)
+            norm_tf_w = tf.math.abs(norm_tf_w)
+            # compute extended balanced loss
+            tf_diff_mse = tf.math.squared_difference(target, pred, name=None)
             tf_diff_mae = tf.math.abs(target-pred)
             tf_mse_input = tf.math.multiply(norm_tf_w, tf_diff_mse)
             tf_mae_input = tf.math.multiply(norm_tf_w, tf_diff_mae)
@@ -506,7 +527,7 @@ class GAN(tf.keras.Model):
             tf_bmae = tf.reduce_mean(tf_mae_input)
             return tf_bmse+tf_bmae
         elif hinge:
-            return tf.h = tf.keras.losses.Hinge(target, pred)
+            return tf.keras.losses.Hinge(target, pred)
         elif MAE:
             g_loss_mae = self.loss_mae(target, pred)       
         else:
@@ -528,17 +549,26 @@ class GAN(tf.keras.Model):
         if train:
             with tf.GradientTape() as tape:
                 predictions = self.discriminator_seq(inp)
-                d_loss_seq = self.loss_fn_d(labels, predictions)
+                l1 = layers.ReLU()(1. - (labels-predictions))
+                loss = tf.math.reduce_mean(l1)
+                l2 = layers.ReLU()(1. + (labels-predictions))
+                loss += tf.math.reduce_mean(l2)
+                #d_loss_seq = self.loss_fn_d(labels, predictions)
             grads = tape.gradient(d_loss_seq, self.discriminator_seq.trainable_weights)
             self.d_optimizer.apply_gradients(
                 zip(grads, self.discriminator_seq.trainable_weights)
             )
         else:
             predictions = self.discriminator_seq(inp)
-            d_loss_seq = self.loss_fn_d(labels, predictions)
+            l1 = layers.ReLU()(1. - (labels-predictions))
+            loss = tf.math.reduce_mean(l1)
+            l2 = layers.ReLU()(1. + (labels-predictions))
+            loss += tf.math.reduce_mean(l2)
+            #d_loss_seq = self.loss_fn_d(labels, predictions)
         # Update D accuracy metric
         self.d_acc_seq.update_state(labels, predictions)
-        return d_loss_seq
+        
+        return loss
     
     def train_disc_frame(self, inp, labels, train = True ):
         if train:
@@ -559,10 +589,8 @@ class GAN(tf.keras.Model):
                 predictions = self.discriminator_frame(frame)
                 d_loss_frame += self.loss_fn_d(labels, predictions)
                 
-        # Update D accuracy metric
-        # TODO: calculate average accuracy over the frames
-        # Now d_acc_frame is accuracy on the last frame
         self.d_acc_frame.update_state(labels, predictions)
+
         return d_loss_frame
     
     def train_discriminators(self, xs , ys, batch_size, train = True):
@@ -611,7 +639,7 @@ class GAN(tf.keras.Model):
                         adv_loss_seq = adv_loss_frame
                     g_loss_adv = adv_loss_frame + adv_loss_seq
                     g_loss_rec = self.loss_rec(ys, generated_images, self.rec_with_mae, self.balanced_loss, self.hinge_loss)
-                    g_loss =  self.l_adv * g_loss_adv  + self.l_rec * g_loss_rec           
+                    g_loss =  self.l_adv * g_loss_adv  + self.l_rec * g_loss_rec        
                 grads = tape.gradient(g_loss, self.generator.trainable_weights)
                 self.g_optimizer.apply_gradients(zip(grads, self.generator.trainable_weights))
         else:

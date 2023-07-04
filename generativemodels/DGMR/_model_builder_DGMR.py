@@ -21,17 +21,6 @@ from scipy.spatial.distance import cityblock
 def wasserstein_loss(y_true, y_pred):
     # TODO: update 
     return backend.mean(y_true * y_pred)
-
-# implementation discriminator hinge loss
-def loss_hinge_disc(score_generated, score_real):
-  # TODO: update 
-  return loss
-  
-# implementation generator hinge loss
-def loss_hinge_gen(score_generated):
-  # TODO: update 
-  loss = -tf.reduce_mean(score_generated)
-  return loss
  
 # grid cell regularizer using code from deepmind
 def grid_cell_regularizer(generated_samples, batch_targets):
@@ -623,7 +612,7 @@ class DGMR(tf.keras.Model):
                  y_length=1, relu_alpha=0.2, architecture='DGMR', l_adv = 1, l_rec = 0.01, g_cycles=1,
                  label_smoothing = 0, norm_method = None, wgan = False, downscale256 = False, rec_with_mae=True,
                  batch_norm = False, drop_out = False, r_to_dbz = False, balanced_loss = False,
-                 rmse_loss = False, temp_data = False, SPROG_data = False):
+                 rmse_loss = False, temp_data = False, extended_balanced = False):
         '''
         inp_dim: dimensions of input image(s), default 768x700
         out_dim: dimensions of the output image(s), default 384x350
@@ -647,6 +636,7 @@ class DGMR(tf.keras.Model):
         batch_norm: if true batch normalization is applied after each convolution(/rnn) block
         drop_out: if true adds dropout layer after each conv block in the Discriminator (dropout rate of 0.2)
         r_to_dbz: If true the data values are in dbz not in r (mm/h)
+        extended_balanced: 
         balanced_loss: If true, balanced loss will be applied (generator)
         rmse_loss: If true, RMSE loss will be applied (generator)
         temp_data: If true, temperature data will be used as additional feature
@@ -678,9 +668,9 @@ class DGMR(tf.keras.Model):
         self.rec_with_mae = rec_with_mae
         self.downscale256 = downscale256
         self.balanced_loss = balanced_loss
+        self.extended_balanced = extended_balanced
         self.rmse_loss = rmse_loss
         self.temp_data = temp_data
-        self.SPROG_data = SPROG_data
         
     def compile(self, lr_g=0.0001, lr_d = 0.0001):
         super(DGMR, self).compile()
@@ -724,7 +714,7 @@ class DGMR(tf.keras.Model):
         denominator = tf.math.log(tf.constant(10, dtype=numerator.dtype))
         return numerator / denominator
             
-    def loss_rec(self, target, pred, MAE = True, balanced = False, rmse = False):
+    def loss_rec(self, target, pred, MAE = True, balanced = False, rmse = False, extended_balanced=False):
         '''
         Reconstruction loss: Hinge loss
         mae: If false the reconstruction loss is equal to the MSE, this was found to perform better
@@ -734,7 +724,7 @@ class DGMR(tf.keras.Model):
         batch_inputs, batch_targets = get_data_batch(batch_size=16)
         grid_cell_reg = grid_cell_regularizer(tf.stack(pred, axis=0))
         gen_disc_loss = loss_hinge_gen(tf.concat(pred, axis=0))
-        gen_loss = gen_disc_loss + 20.0 * grid_cell_reg
+        gen_loss = gen_disc_loss + 22 * grid_cell_reg
         
         def tf_log10(x):
             numerator = tf.math.log(x)
@@ -742,6 +732,27 @@ class DGMR(tf.keras.Model):
             return numerator / denominator
         
         if balanced:
+            img = pred
+            # Z-R relationship constants
+            tf_a = tf.constant(58.53)
+            tf_b = tf.constant(1.56*10)
+            # convert
+            tf_dBZ_0 = tf.math.multiply(img, 70)
+            tf_dBZ = tf_dBZ_0 - 10
+            tf_dBR_0 = tf.math.multiply(tf.constant(10.), tf_log10(tf_a))
+            tf_dBR_1 = tf_dBZ - tf_dBR_0
+            tf_dBR = tf.divide(tf_dBR_1, tf_b)
+            # weights for the loss
+            weights_tf = tf.math.square(tf.pow(10., tf_dBR))
+            weights_tf = tf.clip_by_value(weights_tf, 0, 30)
+            norm_tf_w = (weights_tf - 30)/(30 - 0)
+            norm_tf_w = tf.math.abs(norm_tf_w)
+            # compute balanced loss
+            tf_diff_mse = tf.math.squared_difference(target, pred, name=None)
+            tf_mse_input = tf.math.multiply(norm_tf_w, tf_diff_mse)
+            tf_bmse = tf.reduce_mean(tf_mse_input)
+            return tf_bmse
+        elif extended_balanced:
             img = pred
             # Z-R relationship constants
             tf_a = tf.constant(58.53)

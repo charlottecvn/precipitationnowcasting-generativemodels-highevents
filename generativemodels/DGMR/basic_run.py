@@ -90,7 +90,7 @@ model = DGMR(rnn_type = config.rnn_type, x_length = config.x_length, y_length = 
              architecture = config.architecture, g_cycles=config.g_cycles, label_smoothing = config.label_smoothing,
                 l_adv = config.l_adv, l_rec = config.l_rec, norm_method = config.norm_method, downscale256 = config.downscale256,
                rec_with_mae = config.rec_with_mae, 
-               balanced_loss = balanced_loss, extended_balanced_loss = extended_balanced_loss, rmse_loss = rmse_loss, hinge_loss = hinge_loss, 
+               balanced_loss = balanced_loss, extended_balanced = extended_balanced_loss, rmse_loss = rmse_loss, hinge_loss = hinge_loss, 
                temp_data = temp_data)
 model.compile(lr_g = config.lr_g, lr_d = config.lr_d)
 

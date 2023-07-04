@@ -33,6 +33,7 @@ balanced_loss = True
 hinge_loss = False
 temp_data = False
 batch_size = 16
+extended_balanced_loss=False
 
 # Loads preproccesed files:
 load_prep = True
@@ -73,6 +74,7 @@ run = wandb.init(project='high-precipitation-forecasting',
             'rec_with_mae': False,
             'y_is_rtcor': y_is_rtcor,
             'balanced_loss': balanced_loss,
+            "extended_balanced_loss": extended_balanced_loss,
             'hinge_loss': hinge_loss,
             'temp_data': temp_data,
         })
@@ -87,7 +89,7 @@ generator = DataGenerator(list_IDs, batch_size=config.batch_size,
 model = GAN(rnn_type = config.rnn_type, x_length = config.x_length, y_length = config.y_length,
              architecture = config.architecture, g_cycles=config.g_cycles, label_smoothing = config.label_smoothing,
                 l_adv = config.l_adv, l_rec = config.l_rec, norm_method = config.norm_method, downscale256 = config.downscale256,
-               rec_with_mae = config.rec_with_mae, balanced_loss = balanced_loss, hinge_loss = hinge_loss, temp_data = temp_data)
+               rec_with_mae = config.rec_with_mae, balanced_loss = balanced_loss, extended_balanced= extended_balanced_loss, hinge_loss = hinge_loss, temp_data = temp_data)
 model.compile(lr_g = config.lr_g, lr_d = config.lr_d)
 
  

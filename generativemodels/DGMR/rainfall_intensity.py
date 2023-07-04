@@ -5,7 +5,7 @@ from tqdm import tqdm
 import h5py
 
 threshold_intensity = 30
-year = "2019"
+year = "2019" "" #TODO: select year for analysing  
 
 print("Start computing rain intensities for year : ", year, ", and threshold = ", threshold_intensity)
 

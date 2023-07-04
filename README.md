@@ -4,6 +4,12 @@ Code related to our work at Radboud University and the submission to AIES journa
 - ["Skillful Precipitation Nowcasting using Deep Generative Models of Radar"](https://github.com/deepmind/deepmind-research/tree/master/nowcasting) by DeepMind
 - ["Precipitation Nowcasting using Generative Adversarial Networks"](https://github.com/KoertS/precipitation-nowcasting-using-GANs) by K. Schreurs et al.
 
+General implementation needed for the precipitation nowcasting of higher intensity events. Extensions that are implemented: 
+- Extended balanced loss 
+- Temperature data 
+
+For further details, we refer to the paper, submitted to AIES journal. 
+
 ## Data 
 Real-time precipitation radar data is used from 2006 and 2008 till 2021. The data past 2018 is publicly available at the [KNMI data platform](https://api.dataplatform.knmi.nl/open-data/v1/datasets/nl_rdr_data_rtcor_5m_tar/versions/1.0/files). This dataset was used to train and validate the model
 
