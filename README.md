@@ -3,13 +3,13 @@
 Code related to our paper: "Improving precipitation nowcasting for high-intensity events using deep generative models with balanced loss and temperature data: a case study in the Netherlands." by Cambier van Nooten, C., Schreurs, K., Wijnands, J. S., Leijnse, H., Schmeits, M., Whan, K., & Shapovalova, Y. published in Artificial Intelligence for the Earth Systems (2023).
 
 Cite:
-@article{cambier2023improving,
-  title={Improving precipitation nowcasting for high-intensity events using deep generative models with balanced loss and temperature data: a case study in the {N}etherlands},
-  author={Cambier van Nooten, Charlotte and Schreurs, Koert and Wijnands, Jasper S and Leijnse, Hidde and Schmeits, Maurice and Whan, Kirien and Shapovalova, Yuliya},
-  journal={Artificial Intelligence for the Earth Systems},
-  year={2023},
-  publisher={American Meteorological Society}
-}
+@article{cambier2023improving,\
+  title={Improving precipitation nowcasting for high-intensity events using deep generative models with balanced loss and temperature data: a case study in the {N}etherlands},\
+  author={Cambier van Nooten, Charlotte and Schreurs, Koert and Wijnands, Jasper S and Leijnse, Hidde and Schmeits, Maurice and Whan, Kirien and Shapovalova, Yuliya},\
+  journal={Artificial Intelligence for the Earth Systems},\
+  year={2023},\
+  publisher={American Meteorological Society}\
+}\
 
 Work is building and improving upon previous work in precipitation nowcasting:
 - ["Skillful Precipitation Nowcasting using Deep Generative Models of Radar"](https://github.com/deepmind/deepmind-research/tree/master/nowcasting) by DeepMind
