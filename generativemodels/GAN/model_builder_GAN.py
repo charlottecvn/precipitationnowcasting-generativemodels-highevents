@@ -449,7 +449,7 @@ class GAN(tf.keras.Model):
         self.rec_metric = tf.keras.metrics.Mean(name="rec_loss")
 
         if self.wgan:
-            self.opt = RMSprop(lr=0.00005)
+            self.opt = tf.keras.optimizers.experimental.RMSprop(lr=0.00005)
             self.loss_fn = wasserstein_loss
             
     def rain_intensity(img):
