@@ -293,7 +293,7 @@ class ConditioningStack(object):
 
   def __call__(self, inputs):
     # Space to depth conversion of 256x256x1 radar to 128x128x4 hiddens.
-    h0 = batch_apply(
+    h0 = snt.batch_apply(
         functools.partial(tf.nn.space_to_depth, block_size=2), inputs)
 
     # Downsampling residual D Blocks.
@@ -695,7 +695,7 @@ class DGMR(tf.keras.Model):
         self.rec_metric = tf.keras.metrics.Mean(name="rec_loss")
 
         if self.wgan:
-            self.opt = RMSprop(lr=0.00005)
+            self.opt = tf.keras.optimizers.experimental.RMSprop(lr=0.00005)
             self.loss_fn = wasserstein_loss
             
     def rain_intensity(img):
