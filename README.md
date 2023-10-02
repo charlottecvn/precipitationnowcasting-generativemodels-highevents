@@ -1,5 +1,7 @@
 # Precipitation nowcasting for high-intensity events
 
+Disclaimer: This code is not maintained.
+
 Code related to our paper: "Improving precipitation nowcasting for high-intensity events using deep generative models with balanced loss and temperature data: a case study in the Netherlands." by Cambier van Nooten, C., Schreurs, K., Wijnands, J. S., Leijnse, H., Schmeits, M., Whan, K., & Shapovalova, Y. published in Artificial Intelligence for the Earth Systems (2023).
 
 Cite:
